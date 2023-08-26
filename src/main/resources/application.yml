@@ -1,0 +1,28 @@
+the-game-kafka:
+  clientConsumerProperties:
+    - clientName: "testClient"
+      topic: "testTopic"
+      enabled: true
+      kafkaProperties:
+        consumer:
+          bootstrapServers: localhost:9094
+          groupId: "tgk-group"
+          autoOffset: earliest
+          keyDeserializer: org.apache.kafka.common.serialization.StringDeserializer
+          value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+          properties:
+            spring:
+              json:
+                trusted:
+                  packages: "*"
+              deserializer:
+                value:
+                  delegate:
+                    class: org.apache.kafka.common.serialization.StringDeserializer
+  clientProducerProperties:
+    - clientName: "testClient"
+      topic: "testTopic"
+      enabled: true
+      kafkaProperties:
+        producer:
+          bootstrapServers: localhost:9094
