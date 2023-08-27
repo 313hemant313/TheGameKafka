@@ -1,9 +1,12 @@
 package tech.thegamedefault.springboot.kafka.container;
 
+import java.util.concurrent.TimeUnit;
 import lombok.Getter;
 import org.apache.kafka.common.TopicPartition;
+import org.springframework.kafka.listener.BatchMessageListener;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.MessageListener;
+import tech.thegamedefault.springboot.kafka.config.ThreadPoolProvider;
 
 public final class TheGameKafkaConsumer<K, V> {
 
@@ -26,11 +29,26 @@ public final class TheGameKafkaConsumer<K, V> {
     listenerContainer.start();
   }
 
+  public void listen(BatchMessageListener<K, V> messageListener) {
+    listenerContainer.setupMessageListener(messageListener);
+    listenerContainer.start();
+  }
+
+  public String getListenerId() {
+    return listenerContainer.getListenerId();
+  }
+
   public void stop() {
     listenerContainer.stop();
   }
 
   public void pause() {
+    listenerContainer.pause();
+  }
+
+  public void pauseWithResumeIn(long delayMinutes) {
+    ThreadPoolProvider.getScheduler()
+        .schedule(listenerContainer::resume, delayMinutes, TimeUnit.MINUTES);
     listenerContainer.pause();
   }
 

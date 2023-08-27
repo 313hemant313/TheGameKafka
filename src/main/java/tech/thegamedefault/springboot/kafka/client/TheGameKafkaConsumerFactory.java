@@ -1,6 +1,7 @@
 package tech.thegamedefault.springboot.kafka.client;
 
 import javax.annotation.PostConstruct;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -9,8 +10,9 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.stereotype.Component;
-import tech.thegamedefault.springboot.kafka.container.TheGameKafkaConsumer;
 import tech.thegamedefault.springboot.kafka.config.TheGameKafkaAppProperty;
+import tech.thegamedefault.springboot.kafka.container.TheGameKafkaConsumer;
+import tech.thegamedefault.springboot.kafka.interceptor.TheGameConsumerInterceptor;
 
 @Component
 public class TheGameKafkaConsumerFactory {
@@ -53,11 +55,13 @@ public class TheGameKafkaConsumerFactory {
     return new TheGameKafkaConsumer<>(clientName, topic, listenerContainer);
   }
 
-
   private <K, V> KafkaMessageListenerContainer<K, V> registerAndGetContainer(String topic,
       KafkaProperties kafkaProperties) {
+    var consumerProperties = kafkaProperties.buildConsumerProperties();
+    consumerProperties.put(ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG,
+        TheGameConsumerInterceptor.class.getName());
     DefaultKafkaConsumerFactory<K, V> kafkaConsumerFactory = new DefaultKafkaConsumerFactory<>(
-        kafkaProperties.buildConsumerProperties());
+        consumerProperties);
     ContainerProperties containerProperties = new ContainerProperties(topic);
     return new KafkaMessageListenerContainer<>(kafkaConsumerFactory, containerProperties);
   }
